@@ -14,14 +14,14 @@ app = Flask(__name__)
 
 app.debug = True #Change this to False for production
 
-app.secret_key = os.environ['SECRET_KEY'] 
+app.secret_key = os.environ['SECRET_KEY'] #use SECRET_Key to sign or sessions
 oauth = OAuth(app)
 
-# set up github as the OAUTH provider
+#Set up Github as OATH provider
 github = oauth.remote_app(
     'github',
-    consumer_key=os.environ['GITHUB_CLIENTID'], #using the client id from git hub 
-    consumer_secret=os.environ['GITHUB_CLIENT_SECRET'], #secret is the password also from github
+    consumer_key=os.environ['GITHUB_CLIENT_ID'], #your web app's username for github Oauth
+    consumer_secret=os.environ['GITHUB_CLIENT_SECRET'], #your web app's password for github Oauth
     request_token_params={'scope': 'user:email'}, #request read-only access to the user's email.  For a list of possible scopes, see developer.github.com/apps/building-oauth-apps/scopes-for-oauth-apps
     base_url='https://api.github.com/',
     request_token_url=None,
@@ -30,9 +30,9 @@ github = oauth.remote_app(
     authorize_url='https://github.com/login/oauth/authorize' #URL for github's OAuth login
 )
 
-#context processors run beofre the templates are rendered and add variables to the template's context.
-#context processors must return a dictionary 
-#the processor adds the variable logged_in to the context for all templates
+#context processor run before template are rendered and add variables to the templates context
+#context processors must return a dictionary
+#this processor adds the variable logged_in to the contet for all templates
 @app.context_processor
 def inject_logged_in():
     return {"logged_in":('github_token' in session)}
@@ -40,18 +40,19 @@ def inject_logged_in():
 @app.route('/')
 def home():
     return render_template('home.html')
-#redirect to githubs oauth page and confirm callback url 
+
 @app.route('/login')
 def login():   
     return github.authorize(callback=url_for('authorized', _external=True, _scheme='https'))
 
+#redirects to Github's OAuth page and confirm the calllback URL
 @app.route('/logout')
 def logout():
     session.clear()
     return render_template('message.html', message='You were logged out')
 
 @app.route('/login/authorized')#the route should match the callback URL registered with the OAuth provider
-def authorized('/login/authorized'):
+def authorized():
     resp = github.authorized_response()
     if resp is None:
         session.clear()
@@ -59,13 +60,13 @@ def authorized('/login/authorized'):
     else:
         try:
             #save user data and set log in message
-            session['github_token']=(resp['access_token'],'')
-            session['user_data']=github.get('user').data
-            message="You were successfully logged in as " + session['user_data']['login']
+            sessions['github_token']=(resp['access_token'],'')
+            sessions['user_data']=github.get('user').data
+            message = "you were successfully logge in as " + session['user_data']['login']
         except:
             #clear the session and give error message
             session.clear()
-            message='Unable to login. Please try again.'
+            message = 'unable to login. Please try again.'
     return render_template('message.html', message=message)
 
 
@@ -81,7 +82,8 @@ def renderPage1():
 def renderPage2():
     return render_template('page2.html')
 
-@github.tokengetter #never have to call this just have to add it because it gets caled automatically. It checks who is logged in. 
+#the token getter is automatically called to check who is logged in
+@github.tokengetter
 def get_github_oauth_token():
     return session.get('github_token')
 
