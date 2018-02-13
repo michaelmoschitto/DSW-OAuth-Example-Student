@@ -27,7 +27,7 @@ github = oauth.remote_app(
     request_token_url=None,
     access_token_method='POST',
     access_token_url='https://github.com/login/oauth/access_token',  
-    authorize_url='https://github.com/login/oauth/authorized' #URL for github's OAuth login
+    authorize_url='https://github.com/login/oauth/authorize' #URL for github's OAuth login
 )
 
 #context processor run before template are rendered and add variables to the templates context
