@@ -54,8 +54,8 @@ def logout():
 @app.route('/login/authorized')#the route should match the callback URL registered with the OAuth provider
 def authorized():
     resp = github.authorized_response()
-    #print(resp)
-    #print(sessions['github_token')
+    pprint(resp)
+    pprint(sessions['github_token')
                     
     if resp is None:
         session.clear()
